@@ -10,6 +10,16 @@ function HCP.CreateConvar(category, name, def, type, typedata, panel)
 	return CreateConVar("hcp_" .. name, def, FCVAR_ARCHIVE)
 end
 
+function HCP.CreateClientConvar(category, name, def, type, typedata, panel)
+	HCP.Convars[category] = HCP.Convars[category] or {}
+	table.insert(HCP.Convars[category], {name, def, type, typedata, panel})
+
+	if CLIENT then
+		return CreateConVar("hcp_" .. name, def, bit.bor(FCVAR_ARCHIVE, FCVAR_USERINFO))
+	end
+end
+
+
 function HCP.GetConvarBool(name)
 	if not GetConVar("hcp_" .. name) then return false end
 	return GetConVar("hcp_" .. name):GetBool()
@@ -26,7 +36,7 @@ HCP.CreateConvar("takeover", "takeover_players", 1, "bool")
 HCP.CreateConvar("takeover", "remove_attacker", 1, "bool")
 HCP.CreateConvar("takeover", "enable_zombines", 0, "bool", nil, function(p)
 	if not IsMounted("episodic") then
-		p:Help("#hcp.help.needs_episodic"):SetTextColor(Color(255, 0, 0))
+		p:Help("#hcp.ui.needs_episodic"):SetTextColor(Color(255, 0, 0))
 	end
 end)
 HCP.CreateConvar("takeover", "enable_player_zombines", 1, "bool")
@@ -39,17 +49,17 @@ HCP.CreateConvar("instantkill", "instantkill_behind", 0, "bool")
 HCP.CreateConvar("instantkill", "instantkill_chance", 0, "range", {1, 100})
 
 -- Poison Headcrab Settings
-HCP.CreateConvar("poison_headcrab", "poison_", 1, "bool")
-HCP.CreateConvar("poison_headcrab", "", 1, "bool")
-HCP.CreateConvar("poison_headcrab", "", 1, "bool")
+HCP.CreateConvar("poison", "poison_", 1, "bool")
+HCP.CreateConvar("poison", "", 1, "bool")
+HCP.CreateConvar("poison", "", 1, "bool")
 
 -- Other Convars
-HCP.CreateConvar("other", "enable_undolist", 1, "bool")
+HCP.CreateClientConvar("other", "enable_undolist", 1, "bool")
 HCP.CreateConvar("other", "enable_infection", 0, "bool")
 HCP.CreateConvar("other", "enable_burrowing", 1, "bool")
 HCP.CreateConvar("other", "enable_sabrean", 1, "bool", nil, function(p)
 	if not HCP.GetSabreanInstalled() then
-		local sabrean = p:Button("#hcp.help.download_sabrean")
+		local sabrean = p:Button("#hcp.ui.download_sabrean")
 		sabrean.DoClick = function() gui.OpenURL("https://steamcommunity.com/sharedfiles/filedetails/?id=206166550") end
 	end
 end)

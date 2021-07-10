@@ -71,7 +71,11 @@ end
 -- Finds the zombie class for the given class and entity (returns String)
 -- If no entity is provided, the function will not do a Zombine Check
 function HCP.GetZombieClass(headcrab_class, entity)
-	local class = HCP.Headcrabs[headcrab_class] or HCP.Zombies[headcrab_class] and HCP.GetConvarBool("enable_infection") and headcrab_class
+	local class = HCP.Headcrabs[headcrab_class]
+	if HCP.GetConvarBool("enable_infection") and HCP.Zombies[headcrab_class] then
+		class = headcrab_class ~= "npc_zombine" and headcrab_class or "npc_zombie"
+	end
+
 	if IsValid(entity) and class == "npc_zombie" and HCP.GetConvarBool("enable_zombines") and HCP.ZombineModels[entity:GetModel()] then
 		if entity:IsPlayer() and HCP.GetConvarBool("enable_player_zombines") then
 			return "npc_zombine"
@@ -231,13 +235,26 @@ function HCP.HandleTakeover(attacker, entity, cosmetic)
 
 	local zombie = HCP.CreateZombie(zclass, cosmetic or entity, not HCP.GetConvarBool("enable_bonemerge"))
 
-	if HCP.GetConvarBool("remove_attacker") then
+	if HCP.GetConvarBool("remove_attacker") and not HCP.Zombies[attacker:GetClass()] then
 		attacker:Remove()
 	else
-		attacker.HCP_DMGLock = false
+		attacker.HCP_DMGLock = nil
 	end
 
-	if entity:IsNPC() and not HCP.Zombies[attacker:GetClass()]  then
+	if IsValid(attacker.HCP_Owner) then
+		local owner = attacker.HCP_Owner
+
+		if owner:GetInfoNum("hcp_enable_undolist", 1) == 1 then
+			undo.Create("Zombified_Headcrab")
+				undo.AddEntity(zombie)
+				undo.SetPlayer(owner)
+			undo.Finish()
+		end
+		owner:AddCleanup("npcs", zombie)
+		owner:AddCount("npcs", zombie)
+	end
+
+	if entity:IsNPC() then
 		entity:SetModel("models/props_junk/watermelon01_chunk02c.mdl")
 		SafeRemoveEntityDelayed(entity, 0.2)
 	elseif entity:IsPlayer() then
@@ -247,17 +264,23 @@ function HCP.HandleTakeover(attacker, entity, cosmetic)
 	return zombie
 end
 
+hook.Add("PlayerSpawnedNPC", "headCrabsPlus_OwnerTracker", function(ply, ent)
+	if not IsValid(ply) or not IsValid(ent) then return end
+	ent.HCP_Owner = ply
+end)
+
 -- Mark an enemy for the correct death behavior
 hook.Add("EntityTakeDamage", "HCP_MarkDeath", function(target, dmginfo)
 	if not target:IsNPC() or not IsValid(target.HCP_Bonemerge) or dmginfo:GetDamage() < target:Health() then return end
-	-- Stop them from splitting in half from saws / explosions
-	if dmginfo:GetDamage() >= target:GetMaxHealth( ) / 2 and bit.band(dmginfo:GetDamageType(), bit.bor(DMG_BLAST, DMG_CRUSH, DMG_SLASH)) ~= 0 then
-		dmginfo:SetDamageType(DMG_GENERIC)
-	end
 
 	if dmginfo:IsDamageType(DMG_DISSOLVE) then
 		target.HCP_Death = DEATH_DISSOLVE
 		return
+	end
+
+	-- Stop them from splitting in half from saws / explosions
+	if dmginfo:GetDamage() >= target:GetMaxHealth( ) / 2 and bit.band(dmginfo:GetDamageType(), bit.bor(DMG_BLAST, DMG_CRUSH, DMG_SLASH)) ~= 0 then
+		dmginfo:SetDamageType(DMG_GENERIC)
 	end
 
 	local damageThreshold = dmginfo:GetDamage() / target:GetMaxHealth()
@@ -268,6 +291,7 @@ hook.Add("EntityTakeDamage", "HCP_MarkDeath", function(target, dmginfo)
 		HC_BONE = 10
 	else return end
 
+	-- Determine if the attack hit the head bone
 	if dmginfo:IsBulletDamage() and damageThreshold < 0.25 then
 		if not target:GetHitBoxBone(HC_BONE, 0) then return end
 

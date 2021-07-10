@@ -59,7 +59,7 @@ if SERVER then
 	end)
 
 	hook.Add("OnEntityCreated", "HCP_Modifiers", function(ent)
-		if not IsValid(ent) or not ent:IsNPC() or not HCP.GetConvarBool("modifiers_enable") then return end
+		if not HCP.GetConvarBool("modifiers_enable") or not IsValid(ent) or not ent:IsNPC() then return end
 
 		timer.Simple(0.2, function()
 			if not IsValid(ent) then return end
