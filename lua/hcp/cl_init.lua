@@ -29,6 +29,15 @@ local function HCP_Menu(CPanel)
 	end
 	CPanel:AddItem(instant_kill)
 
+	--Poison Headcrab Options
+	local poison = vgui.Create("DForm", CPanel)
+	poison:SetName("#hcp.ui.poison")
+	poison:Help("#hcp.help.poison"):DockMargin(0, 0, 8, 8)
+	for k, v in pairs(HCP.Convars["poison"]) do
+		HCP_AddOption(poison, v)
+	end
+	CPanel:AddItem(poison)
+
 	-- Other Options
 	local other = vgui.Create("DForm", CPanel)
 	other:SetName("#hcp.ui.other")

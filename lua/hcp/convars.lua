@@ -49,9 +49,8 @@ HCP.CreateConvar("instantkill", "instantkill_behind", 0, "bool")
 HCP.CreateConvar("instantkill", "instantkill_chance", 0, "range", {1, 100})
 
 -- Poison Headcrab Settings
-HCP.CreateConvar("poison", "poison_", 1, "bool")
-HCP.CreateConvar("poison", "", 1, "bool")
-HCP.CreateConvar("poison", "", 1, "bool")
+HCP.CreateConvar("poison", "poisonbites", 3, "range", {0, 5})
+HCP.CreateConvar("poison", "poisonbites_healtime", 5, "range", {1, 15})
 
 -- Other Convars
 HCP.CreateClientConvar("other", "enable_undolist", 1, "bool")
@@ -59,8 +58,7 @@ HCP.CreateConvar("other", "enable_infection", 0, "bool")
 HCP.CreateConvar("other", "enable_burrowing", 1, "bool")
 HCP.CreateConvar("other", "enable_sabrean", 1, "bool", nil, function(p)
 	if not HCP.GetSabreanInstalled() then
-		local sabrean = p:Button("#hcp.ui.download_sabrean")
-		sabrean.DoClick = function() gui.OpenURL("https://steamcommunity.com/sharedfiles/filedetails/?id=206166550") end
+		p:Button("#hcp.ui.download_sabrean").DoClick = function() gui.OpenURL("https://steamcommunity.com/sharedfiles/filedetails/?id=206166550") end
 	end
 end)
 
