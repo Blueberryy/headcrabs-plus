@@ -9,16 +9,17 @@ local DEATH_DISSOLVE, DEATH_NODROP = 1, 2
 
 HCP.ZombineModels = {
 	["models/combine_soldier_prisonguard.mdl"] = 2, -- Number indicates Sabrean Skin, true means no replacement
-	["models/combine_soldier.mdl"] = 4,
 	["models/player/combine_soldier_prisonguard.mdl"] = 2,
-	["models/player/zombie_soldier.mdl"] = 4,
+
+	["models/player/combine_soldier_prisonguard_original.mdl"] = 2,
 	["models/player/combine_super_soldier.mdl"] = 3,
 	["models/combine_super_soldier.mdl"] = 3,
 	["models/player/combine_elite_original.mdl"] = 3,
-	["models/player/combine_soldier_original.mdl"] = 4,
-	["models/player/combine_soldier_prisonguard_original.mdl"] = 2,
-	["models/bloocobalt/combine/combine_04.mdl"] = 4,
-	["models/player/combine_soldier.mdl"] = 4,
+
+	["models/player/combine_soldier.mdl"] = {[0] = 4, [1] = 1},
+	["models/player/combine_soldier_original.mdl"] = {[0] = 4, [1] = 1},
+	["models/combine_soldier.mdl"] = {[0] = 4, [1] = 1},
+	["models/bloocobalt/combine/combine_04.mdl"] = {[0] = 4, [1] = 1},
 
 	--Combine Units +PLUS+
 	["models/nohelm_soldier.mdl"] = 4,
@@ -31,6 +32,7 @@ HCP.ZombineModels = {
 	["models/missing_soldier_prisonguard.mdl"] = true,
 	["models/missing_super_soldier.mdl"] = true,
 	["models/combine_burner_eliter.mdl"] = true,
+	["models/player/zombie_soldier.mdl"] = true,
 }
 
 HCP.Headcrabs = {
@@ -45,6 +47,11 @@ HCP.Zombies = {
 	["npc_fastzombie"] = true,
 	["npc_poisonzombie"] = true,
 	["npc_zombine"] = true,
+}
+
+HCP.InstantKill = {
+	["npc_headcrab"] = true,
+	["npc_headcrab_fast"] = true,
 }
 
 -- Determines if a Headcrab can take over an Entity (returns Bool)
@@ -88,10 +95,17 @@ function HCP.SetupBonemerge(zclass, entity, target, nobonemerge)
 	local model, skin
 	if HCP.GetSabreanEnabled() then
 		local skintable = HCP.GetSabreanSkin(entity:GetModel())
+		local zombineskin = HCP.ZombineModels[entity:GetModel()]
+
+		-- Support for shotgunner skins
+		if istable(zombineskin) then
+			zombineskin = zombineskin[entity:GetSkin()] or true
+		end
+
 		if zclass == "npc_zombie" or zclass == "npc_fastzombie" then
-			if (not skintable or not skintable[1]) and isnumber(HCP.ZombineModels[entity:GetModel()]) then
+			if (not skintable or not skintable[1]) and isnumber(zombineskin) then
 				model = "models/zombie/zombie_soldier.mdl"
-				skin = HCP.ZombineModels[entity:GetModel()]
+				skin = zombineskin
 			elseif skintable then
 				model = "models/zombie/classic.mdl"
 				skin = skintable[1]
@@ -99,9 +113,9 @@ function HCP.SetupBonemerge(zclass, entity, target, nobonemerge)
 		elseif skintable and zclass == "npc_poisonzombie" then
 			model = "models/zombie/poison.mdl"
 			skin = skintable[2]
-		elseif isnumber(HCP.ZombineModels[entity:GetModel()]) and zclass == "npc_zombine" then
+		elseif isnumber(zombineskin) and zclass == "npc_zombine" then
 			model = "models/zombie/zombie_soldier.mdl"
-			skin = HCP.ZombineModels[entity:GetModel()]
+			skin = zombineskin
 		end
 	end
 
@@ -219,6 +233,7 @@ function HCP.HandleTakeover(attacker, entity, cosmetic)
 
 	if HCP.GetConvarBool("remove_attacker") then
 		attacker:Remove()
+	else
 		attacker.HCP_DMGLock = false
 	end
 
@@ -319,9 +334,8 @@ end)
 
 -- Instant Kill Chance
 hook.Add("EntityTakeDamage", "HCP_InstantKill", function(ent, dmg)
-	if not HCP.CheckTakeOver(ent, nil, dmg:GetAttacker()) then return end
+	if not HCP.CheckTakeOver(ent, nil, dmg:GetAttacker()) or not HCP.InstantKill[dmg:GetAttacker():GetClass()]  then return end
 	local attacker = dmg:GetAttacker()
-	if HCP.Zombies[attacker:GetClass()] then return end
 
 	if HCP.GetConvarBool("instantkill_enable") and math.Rand(0, 100) < HCP.GetConvarInt("instantkill_chance") then
 		dmg:SetDamage(999)

@@ -10,17 +10,14 @@ HCP.Modifiers = {
 	["npc_zombine"] = {10, 100},
 }
 
-HCP.CreateConvar("Modifiers", "modifiers_enable", 1, "bool")
-HCP.CreateConvar("Modifiers", "modifiers_override", 1, "bool")
-
 for k, v in pairs(HCP.Modifiers) do
 	if isstring(v) then continue end
 
 	local name = k:sub(#"npc_" + 1)
 	if v[1] then
-		HCP.CreateConvar("Damage Modifiers", "dmg_" .. name, v[1], "range", {0, 100})
+		HCP.CreateConvar("dmg_modifiers", "dmg_" .. name, v[1], "range", {0, 100})
 	end
-	HCP.CreateConvar("Health Modifiers", "health_" .. name, v[2], "range", {1, 300})
+	HCP.CreateConvar("health_modifiers", "health_" .. name, v[2], "range", {1, 300})
 end
 
 -- Calculates the modified health value (returns Integer)
@@ -56,8 +53,7 @@ if SERVER then
 		if not IsValid(dmg:GetAttacker()) or not HCP.GetConvarBool("modifiers_enable") then return end
 
 		local newdmg = HCP.GetModifiedDamage(dmg:GetAttacker(), dmg)
-		print(dmg:GetAttacker().HCP_DMGLock)
-		if not newdmg or dmg:GetAttacker().HCP_DMGLock and dmg:GetAttacker().HCP_DMGLock + 0.1 > CurTime() then return end
+		if not newdmg or (dmg:GetAttacker().HCP_DMGLock and dmg:GetAttacker().HCP_DMGLock + 0.1 > CurTime()) then return end
 
 		dmg:SetDamage(newdmg)
 	end)

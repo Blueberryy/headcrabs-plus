@@ -16,14 +16,14 @@ local function HCP_Menu(CPanel)
 	CPanel:ClearControls()
 
 	-- Take Over Options
-	for k, v in pairs(HCP.Convars["Take Over Options"]) do
+	for k, v in pairs(HCP.Convars["takeover"]) do
 		HCP_AddOption(CPanel, v)
 	end
 
 	-- Instant-Kill Options
 	local instant_kill = vgui.Create("DForm", CPanel)
 	instant_kill:SetName("Instant Kill Options")
-	for k, v in pairs(HCP.Convars["Instant-Kill Options"]) do
+	for k, v in pairs(HCP.Convars["instantkill"]) do
 		HCP_AddOption(instant_kill, v)
 	end
 	CPanel:AddItem(instant_kill)
@@ -31,7 +31,7 @@ local function HCP_Menu(CPanel)
 	-- Other Options
 	local other = vgui.Create("DForm", CPanel)
 	other:SetName("Other Options")
-	for k, v in pairs(HCP.Convars["Other"]) do
+	for k, v in pairs(HCP.Convars["other"]) do
 		HCP_AddOption(other, v)
 	end
 
@@ -41,14 +41,14 @@ local function HCP_Menu(CPanel)
 	local modifiers = vgui.Create("DForm", CPanel)
 	modifiers:SetName("Modifiers")
 
-	for k, v in pairs(HCP.Convars["Modifiers"]) do
+	for k, v in pairs(HCP.Convars["modifiers"]) do
 		HCP_AddOption(modifiers, v)
 	end
 
 	modifiers:Help("")
 	local health_label = modifiers:Help("Health Modifiers")
 	health_label:DockMargin(0, 0, 8, 8)
-	for k, v in pairs(HCP.Convars["Health Modifiers"]) do
+	for k, v in pairs(HCP.Convars["health_modifiers"]) do
 		local name = list.Get("NPC")["npc_" .. v[1]:sub(#"health_" + 1)]
 		HCP_AddOption(modifiers, v, name and name.Name or "npc_" .. v[1]:sub(#"health_" + 1))
 	end
@@ -56,7 +56,7 @@ local function HCP_Menu(CPanel)
 	modifiers:Help("")
 	local dmg_label = modifiers:Help("Damage Modifiers")
 	dmg_label:DockMargin(0, 0, 8, 8)
-	for k, v in pairs(HCP.Convars["Damage Modifiers"]) do
+	for k, v in pairs(HCP.Convars["dmg_modifiers"]) do
 		local name = list.Get("NPC")["npc_" .. v[1]:sub(#"dmg_" + 1)]
 		HCP_AddOption(modifiers, v, name and name.Name or "npc_" .. v[1]:sub(#"dmg_" + 1))
 	end
