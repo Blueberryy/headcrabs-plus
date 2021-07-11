@@ -56,7 +56,7 @@ HCP.InstantKill = {
 
 -- Determines if a Headcrab can take over an Entity (returns Bool)
 function HCP.CheckTakeOver(entity, cosmetic, attacker)
-	if IsValid(attacker) and not HCP.GetZombieClass(attacker:GetClass()) then return false end
+	if attacker and (not IsValid(attacker) or not HCP.GetZombieClass(attacker:GetClass())) then return false end
 	if not IsValid(entity) or not HCP.CheckHeadBone(cosmetic or entity) then return false end
 	if entity:IsPlayer() and HCP.GetConvarBool("takeover_players") then return true end
 	if entity:IsNPC() and HCP.GetConvarBool("takeover_npcs") then return true end
@@ -278,6 +278,13 @@ hook.Add("EntityTakeDamage", "HCP_MarkDeath", function(target, dmginfo)
 		return
 	end
 
+	if target:GetClass() == "npc_poisonzombie" and target:GetKeyValues()["crabcount"] == 0  then
+		for k,v in pairs(target:GetBodyGroups()) do
+			target:SetBodygroup(v.id, 0)
+		end
+		return
+	end
+
 	-- Stop them from splitting in half from saws / explosions
 	if dmginfo:GetDamage() >= target:GetMaxHealth( ) / 2 and bit.band(dmginfo:GetDamageType(), bit.bor(DMG_BLAST, DMG_CRUSH, DMG_SLASH)) ~= 0 then
 		dmginfo:SetDamageType(DMG_GENERIC)
@@ -289,7 +296,9 @@ hook.Add("EntityTakeDamage", "HCP_MarkDeath", function(target, dmginfo)
 		HC_BONE = 13
 	elseif target:GetClass() == "npc_fastzombie" then
 		HC_BONE = 10
-	else return end
+	else
+		return
+	end
 
 	-- Determine if the attack hit the head bone
 	if dmginfo:IsBulletDamage() and damageThreshold < 0.25 then
@@ -348,7 +357,9 @@ end)
 
 -- Remove Player's Ragdoll after Zombification
 hook.Add("PostPlayerDeath", "HCP_RemoveRagdoll", function(ply)
-	if not IsValid(ply) or not ply.HCP_RemoveRagdoll then return end
+	ply.HCP_PoisonBites = nil
+
+	if not ply.HCP_RemoveRagdoll then return end
 	ply.HCP_RemoveRagdoll = nil
 
 	if IsValid(ply:GetRagdollEntity()) then
@@ -358,8 +369,8 @@ end)
 
 -- Instant Kill Chance
 hook.Add("EntityTakeDamage", "HCP_InstantKill", function(ent, dmg)
-	if not HCP.CheckTakeOver(ent, nil, dmg:GetAttacker()) or not HCP.InstantKill[dmg:GetAttacker():GetClass()]  then return end
 	local attacker = dmg:GetAttacker()
+	if not HCP.CheckTakeOver(ent, nil, attacker) or not HCP.InstantKill[attacker:GetClass()]  then return end
 
 	if HCP.GetConvarBool("instantkill_enable") and math.Rand(0, 100) < HCP.GetConvarInt("instantkill_chance") then
 		dmg:SetDamage(999)
@@ -371,7 +382,7 @@ hook.Add("EntityTakeDamage", "HCP_InstantKill", function(ent, dmg)
 		angle:Normalize()
 		if angle.y < 60 and angle.y > -60 then
 			dmg:SetDamage(999)
-			attacker.HCP_DMGLock = CurTime()
+			attacker.HCP_DMGLock = CurTime() + 0.1
 		end
 	end
 end)

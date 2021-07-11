@@ -53,7 +53,7 @@ if SERVER then
 		if not IsValid(dmg:GetAttacker()) or not HCP.GetConvarBool("modifiers_enable") then return end
 
 		local newdmg = HCP.GetModifiedDamage(dmg:GetAttacker(), dmg)
-		if not newdmg or (dmg:GetAttacker().HCP_DMGLock and dmg:GetAttacker().HCP_DMGLock + 0.1 > CurTime()) then return end
+		if not newdmg or (dmg:GetAttacker().HCP_DMGLock and dmg:GetAttacker().HCP_DMGLock > CurTime()) then return end
 
 		dmg:SetDamage(newdmg)
 	end)
