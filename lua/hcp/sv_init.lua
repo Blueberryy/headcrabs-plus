@@ -370,7 +370,7 @@ end)
 -- Instant Kill Chance
 hook.Add("EntityTakeDamage", "HCP_InstantKill", function(ent, dmg)
 	local attacker = dmg:GetAttacker()
-	if not HCP.CheckTakeOver(ent, nil, attacker) or not HCP.InstantKill[attacker:GetClass()]  then return end
+	if not HCP.CheckTakeOver(ent, nil, attacker) or not HCP.InstantKill[attacker:GetClass()] then return end
 
 	if HCP.GetConvarBool("instantkill_enable") and math.Rand(0, 100) < HCP.GetConvarInt("instantkill_chance") then
 		dmg:SetDamage(999)
@@ -408,4 +408,77 @@ hook.Add("InitPostEntity", "HCP_CompatHooks", function()
 			return oldbgo(npc, attacker, inflictor)
 		end)
 	end
+end)
+
+-- Diagnostics for bug reports
+-- I don't really care that its bad, its just for me!
+local Hooks = {
+	"InitPostEntity",
+	"EntityTakeDamage",
+	"DoPlayerDeath",
+	"OnNPCKilled",
+}
+local functions = {}
+local function ReadHookFile(info)
+	local source = "lua/" .. string.gsub(info.source, "@(.*)lua/", "", 1)
+	local data = file.Read(source, "GAME")
+	if not data or data == "" then return end
+
+	local str = ""
+	local datatable = string.Split(data, "\n")
+	for i = info.linedefined, info.lastlinedefined do
+		if not datatable[i] then break end
+		str = str .. datatable[i] .. "\n"
+	end
+
+	return str
+end
+
+local diagnostic
+concommand.Add("hcp_diagnostic", function(ply)
+	if IsValid(ply) and not ply:IsAdmin() then return end
+	local report = IsValid(ply) and function(...) ply:ChatPrint(...) print(...) end or print
+
+	if diagnostic then
+		report(diagnostic)
+		return
+	end
+
+	local str = "----List of Addons----"
+	for k, v in pairs(engine.GetAddons()) do
+		if not v.mounted then continue end
+		str = str .. "\n" .. v.wsid .. ":\t" .. v.title
+	end
+
+	str = str .. "\n\n-----List of Hooks----"
+	for k, v in pairs(Hooks) do
+		str = str .. "\n" .. v .. ":"
+		for a, b in SortedPairs(hook.GetTable()[v]) do
+			str = str .. "\n\t" .. a
+			functions[v .. "." .. a] = b
+		end
+	end
+
+	str = str .. "\n\n-----Hook Definitions-----"
+	for k, v in SortedPairs(functions) do
+		local info = debug.getinfo(v)
+		str = str .. "\n" .. k .. ": " .. info.source .. "\n" .. (ReadHookFile(info) or "unable to read") .. "\n"
+	end
+
+	HTTP({
+		url = "https://hastebin.com/documents",
+		method = "POST",
+		body = str,
+		failure = function(e) report("Diagnostic failed to post: " .. e) end,
+		success = function(c, body, h)
+			local data = util.JSONToTable(body)
+			if not data or not data.key then
+				report("Diagnostic failed to post: " .. c)
+				return
+			end
+
+			diagnostic = "Your diagnostic report has been posted at:\n" .. "https://hastebin.com/" .. data.key .. "\nPaste this in your bug report on the forums!"
+			report(diagnostic)
+		end
+	})
 end)

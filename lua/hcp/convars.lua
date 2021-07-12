@@ -43,19 +43,27 @@ HCP.CreateConvar("takeover", "enable_player_zombines", 1, "bool")
 HCP.CreateConvar("takeover", "enable_bonemerge", 1, "bool")
 HCP.CreateConvar("takeover", "enable_bonemerge_ragdolls", 1, "bool")
 
--- Instant kill Convars
+-- Instant Kill Convars
 HCP.CreateConvar("instantkill", "instantkill_enable", 0, "bool")
 HCP.CreateConvar("instantkill", "instantkill_behind", 0, "bool")
 HCP.CreateConvar("instantkill", "instantkill_chance", 0, "range", {1, 100})
 
--- Poison Headcrab Settings
-HCP.CreateConvar("poison", "poisonbites", 3, "range", {0, 5})
-HCP.CreateConvar("poison", "poisonbites_healtime", 5, "range", {1, 15})
+-- Scripted Sequences Convars
+HCP.CreateConvar("scripted", "takeover_animation", 0, "bool")
+HCP.CreateConvar("scripted", "enable_burrowing", 0, "bool")
+HCP.CreateConvar("scripted", "burrowing_range", 0, "range", {1, 500})
+HCP.CreateConvar("scripted", "enable_sleeping", 0, "bool")
+HCP.CreateConvar("scripted", "sleeping_range", 0, "range", {1, 500})
+HCP.CreateConvar("scripted", "sleeping_time", 0, "range", {1, 500})
+
+-- Poison Headcrab Convars
+HCP.CreateConvar("poison", "poison_bites", 3, "range", {0, 5})
+HCP.CreateConvar("poison", "poison_healtime", 5, "range", {1, 30})
+HCP.CreateConvar("poison", "poison_return", 3, "bool", nil, function(p, box) box:SetEnabled(false) end)
 
 -- Other Convars
 HCP.CreateClientConvar("other", "enable_undolist", 1, "bool")
 HCP.CreateConvar("other", "enable_infection", 0, "bool")
-HCP.CreateConvar("other", "enable_burrowing", 1, "bool")
 HCP.CreateConvar("other", "enable_sabrean", 1, "bool", nil, function(p)
 	if not HCP.GetSabreanInstalled() then
 		p:Button("#hcp.ui.download_sabrean").DoClick = function() gui.OpenURL("https://steamcommunity.com/sharedfiles/filedetails/?id=206166550") end

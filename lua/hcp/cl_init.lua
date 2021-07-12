@@ -21,13 +21,22 @@ local function HCP_Menu(CPanel)
 		HCP_AddOption(CPanel, v)
 	end
 
-	-- Instant-Kill Options
+	-- Instant Kill Options
 	local instant_kill = vgui.Create("DForm", CPanel)
 	instant_kill:SetName("#hcp.ui.instantkill")
 	for k, v in pairs(HCP.Convars["instantkill"]) do
 		HCP_AddOption(instant_kill, v)
 	end
 	CPanel:AddItem(instant_kill)
+
+	-- Scripted Sequences Options
+	local sequences = vgui.Create("DForm", CPanel)
+	sequences:SetName("#hcp.ui.scripted")
+	sequences:SetExpanded(false)
+	for k, v in pairs(HCP.Convars["scripted"]) do
+		HCP_AddOption(sequences, v):SetEnabled(false)
+	end
+	CPanel:AddItem(sequences)
 
 	--Poison Headcrab Options
 	local poison = vgui.Create("DForm", CPanel)
@@ -44,8 +53,17 @@ local function HCP_Menu(CPanel)
 	for k, v in pairs(HCP.Convars["other"]) do
 		HCP_AddOption(other, v)
 	end
-
 	CPanel:AddItem(other)
+
+	-- About
+	local about = vgui.Create("DForm", CPanel)
+	about:SetName("#hcp.about")
+	about:Help("Headcrabs Plus v" .. HCP.Version):DockMargin(0, 0, 8, 8)
+	-- about:Help("Made by Axel"):DockMargin(0, 0, 8, 8)
+	about:Button("#hcp.about.workshop").DoClick = function() gui.OpenURL("https://steamcommunity.com/sharedfiles/filedetails/?id=2463494681") end
+	about:Button("#hcp.about.bug_report", "hcp_diagnostic"):SetTextColor(Color(200, 0, 0))
+	about:Help("")
+	CPanel:AddItem(about)
 end
 
 local function HCP_Modifiers(CPanel)
@@ -74,6 +92,6 @@ local function HCP_Modifiers(CPanel)
 end
 
 hook.Add("PopulateToolMenu", "HCP_PopulateSettings", function()
-	spawnmenu.AddToolMenuOption("Utilities", "Headcrabs Plus", "HCP_Settings", "#Settings", "", "", HCP_Menu)
+	spawnmenu.AddToolMenuOption("Utilities", "Headcrabs Plus", "HCP_Settings", "#hcp.ui.settings", "", "", HCP_Menu)
 	spawnmenu.AddToolMenuOption("Utilities", "Headcrabs Plus", "HCP_Modifiers", "#hcp.ui.modifiers", "", "", HCP_Modifiers)
 end)
