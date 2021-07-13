@@ -36,7 +36,7 @@ HCP.CreateConvar("takeover", "takeover_players", 1, "bool")
 HCP.CreateConvar("takeover", "remove_attacker", 1, "bool")
 HCP.CreateConvar("takeover", "enable_zombines", 0, "bool", nil, function(p)
 	if not IsMounted("episodic") then
-		p:Help("#hcp.ui.needs_episodic"):SetTextColor(Color(255, 0, 0))
+		p:Help("#hcp.help.needs_episodic"):SetTextColor(Color(255, 0, 0))
 	end
 end)
 HCP.CreateConvar("takeover", "enable_player_zombines", 1, "bool")
@@ -66,7 +66,7 @@ HCP.CreateClientConvar("other", "enable_undolist", 1, "bool")
 HCP.CreateConvar("other", "enable_infection", 0, "bool")
 HCP.CreateConvar("other", "enable_sabrean", 1, "bool", nil, function(p)
 	if not HCP.GetSabreanInstalled() then
-		p:Button("#hcp.ui.download_sabrean").DoClick = function() gui.OpenURL("https://steamcommunity.com/sharedfiles/filedetails/?id=206166550") end
+		p:Button("#hcp.help.download_sabrean").DoClick = function() gui.OpenURL("https://steamcommunity.com/sharedfiles/filedetails/?id=206166550") end
 	end
 end)
 
